@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   agentCommand: vi.fn(),
   registerAgentRunContext: vi.fn(),
   loadConfigReturn: {} as Record<string, unknown>,
+  loadConfigReturn: {} as Record<string, unknown>,
 }));
 
 vi.mock("../session-utils.js", () => ({
@@ -16,9 +17,9 @@ vi.mock("../session-utils.js", () => ({
 }));
 
 vi.mock("../../config/sessions.js", async () => {
-  const actual = await vi.importActual<typeof import("../../config/sessions.js")>(
-    "../../config/sessions.js",
-  );
+  const actual = await vi.importActual<
+    typeof import("../../config/sessions.js")
+  >("../../config/sessions.js");
   return {
     ...actual,
     updateSessionStore: mocks.updateSessionStore,
@@ -33,6 +34,7 @@ vi.mock("../../commands/agent.js", () => ({
 }));
 
 vi.mock("../../config/config.js", () => ({
+  loadConfig: () => mocks.loadConfigReturn,
   loadConfig: () => mocks.loadConfigReturn,
 }));
 
@@ -50,9 +52,9 @@ vi.mock("../../sessions/send-policy.js", () => ({
 }));
 
 vi.mock("../../utils/delivery-context.js", async () => {
-  const actual = await vi.importActual<typeof import("../../utils/delivery-context.js")>(
-    "../../utils/delivery-context.js",
-  );
+  const actual = await vi.importActual<
+    typeof import("../../utils/delivery-context.js")
+  >("../../utils/delivery-context.js");
   return {
     ...actual,
     normalizeSessionDeliveryFields: () => ({}),
@@ -125,6 +127,7 @@ describe("gateway agent handler", () => {
       agents: {
         defaults: {
           userTimezone: "America/New_York",
+          timeFormat: "12",
         },
       },
     };
@@ -163,7 +166,9 @@ describe("gateway agent handler", () => {
     await vi.waitFor(() => expect(mocks.agentCommand).toHaveBeenCalled());
 
     const callArgs = mocks.agentCommand.mock.calls[0][0];
-    expect(callArgs.message).toBe("[Wed 2026-01-28 20:30 EST] Is it the weekend?");
+    expect(callArgs.message).toMatch(
+      /^\[.*Wednesday.*January 28.*2026.*8:30 PM.*\] Is it the weekend\?$/,
+    );
 
     mocks.loadConfigReturn = {};
     vi.useRealTimers();
