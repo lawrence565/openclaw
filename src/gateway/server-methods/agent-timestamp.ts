@@ -56,7 +56,13 @@ export function injectTimestamp(
   const formatted = formatZonedTimestamp(now, timezone);
   if (!formatted) return message;
 
-  return `[${formatted}] ${message}`;
+  // Add 3-letter day-of-week for smaller models that can't derive DOW
+  // from a date. Costs ~1 token, cheap insurance.
+  const dow = new Intl.DateTimeFormat("en-US", { timeZone: timezone, weekday: "short" }).format(
+    now,
+  );
+
+  return `[${dow} ${formatted}] ${message}`;
 }
 
 /**
